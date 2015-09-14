@@ -43,6 +43,7 @@ trap 'cleanup' QUIT EXIT
 
 # For security reasons, explicitly set the internal field separator
 # to newline, space, tab
+site=`pwd | cut -d '/' -f 4`
 OLD_IFS=$IFS
 IFS='
  	'
@@ -190,11 +191,11 @@ fi
 if [ $VERBOSE -eq 1 ]; then
     echo -n "creating superproject archive..."
 fi
-git archive --format=$FORMAT --prefix="$PREFIX" $TREEISH > $TMPDIR/$(basename "$(pwd)").$FORMAT
+git archive --format=$FORMAT --prefix="$PREFIX" $TREEISH > $TMPDIR/$site-$(basename "$(pwd)").$FORMAT
 if [ $VERBOSE -eq 1 ]; then
     echo "done"
 fi
-echo $TMPDIR/$(basename "$(pwd)").$FORMAT >| $TMPFILE # clobber on purpose
+echo $TMPDIR/$site-$(basename "$(pwd)").$FORMAT >| $TMPFILE # clobber on purpose
 superfile=`head -n 1 $TMPFILE`
 
 if [ $VERBOSE -eq 1 ]; then
