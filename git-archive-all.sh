@@ -219,15 +219,19 @@ fi
 if [ $VERBOSE -eq 1 ]; then
     echo -n "archiving submodules..."
 fi
+
+tag="git-archive-`tr -cd '[:alnum:]' < /dev/urandom | fold -w30 | head -n1`"
+mkdir -p $TMPDIR/$tag
+
 while read path; do
     TREEISH=$(git submodule | grep "^ .*${path%/} " | cut -d ' ' -f 2) # git submodule does not list trailing slashes in $path
     cd "$path"
-    git archive --format=$FORMAT --prefix="${PREFIX}$path" ${TREEISH:-HEAD} > "$TMPDIR"/"$(echo "$path" | sed -e 's/\//./g')"$FORMAT
+    git archive --format=$FORMAT --prefix="${PREFIX}$path" ${TREEISH:-HEAD} > "$TMPDIR"/$tag/"$(echo "$path" | sed -e 's/\//./g')"$FORMAT
     if [ $FORMAT == 'zip' ]; then
         # delete the empty directory entry; zipped submodules won't unzip if we don't do this
         zip -d "$(tail -n 1 $TMPFILE)" "${PREFIX}${path%/}" >/dev/null # remove trailing '/'
     fi
-    echo "$TMPDIR"/"$(echo "$path" | sed -e 's/\//./g')"$FORMAT >> $TMPFILE
+    echo "$TMPDIR"/$tag/"$(echo "$path" | sed -e 's/\//./g')"$FORMAT >> $TMPFILE
     cd "$OLD_PWD"
 done < $TOARCHIVE
 if [ $VERBOSE -eq 1 ]; then
@@ -264,6 +268,10 @@ fi
 while read file; do
     mv "$file" "$OUT_FILE"
 done < $TMPFILE
+
+rm -r $TMPDIR/$tag
+
 if [ $VERBOSE -eq 1 ]; then
     echo "done"
 fi
+
